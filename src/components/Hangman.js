@@ -2,18 +2,20 @@ import { useState } from 'react';
 import Letter from './Letter';
 import Header from './Header';
 import Word from './Word';
+import ResultsModal from './ResultsModal';
+import { Modal, Button } from "react-bootstrap";
 
 function Hangman(){
   const [status, setStatus] = useState('launch'); //launch, setMusk, playing, results
-  const [hangman, setHangman] = useState(1) // 1 up to 11 using 'hangmandrawings' in the 'Public' folder
+  const [hangman, setHangman] = useState({figure: 1 , winner: null}) // 1 up to 11 using 'hangmandrawings' in the 'Public' folder
   const [guessWord, setGuessWord] = useState('');
   const [hiddenGuessWord, setHiddenGuessWord] = useState('');
 
   //Might need to be changed to stated to be better managed
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-  //const guessWord = "imagine".toUpperCase();
-
+    //The user should be clearly informed if they have “won” or “lost” the game.
+    if(status !== 'results') determineResults(); 
 
   if(status === 'launch') {
         //Get words from dictionary.txt
@@ -28,7 +30,7 @@ function Hangman(){
             const randomIndex = Math.floor(Math.random() * dictionaryax) + dictionaryMin;
             const randomWord = dictionaryWords[randomIndex];
             
-            setGuessWord(randomWord.toUpperCase());
+            setGuessWord(randomWord.toUpperCase().replace('\r',''));
             //guessWord = randomWord.toUpperCase();
             console.log("GuessWord:" + guessWord);
 
@@ -38,15 +40,6 @@ function Hangman(){
         })
         .catch((e) => console.error(e))
 
-                    //hiddenGuessWord should have underscores insted of the actual word
-                    /*let str = '';
-                    for(let i=0; i<guessWord.length; i++ ){
-                        str += '_';
-                    }
-                    setHiddenGuessWord(str);
-                    console.log("Hidden: "+hiddenGuessWord);
-        setStatus('playing');*/
-
     }
 
     if(status === 'setMusk'){
@@ -54,7 +47,11 @@ function Hangman(){
          console.log("GuessWord:" + guessWord);
 
 
-         let str = '';
+        let str = '';
+        /*for(let letter of guessWord){
+            str += '_';
+        }*/
+
          for(let i=0; i<guessWord.length; i++ ){
              str += '_';
          }
@@ -65,55 +62,50 @@ function Hangman(){
 
     function handleClick(e) 
     {
-        //console.log('Click happened');
-        //console.log(e.target.innerText);
         const clickedLetter = e.currentTarget.innerText;
-
         if(guessWord.includes(clickedLetter)){
             //dertmine if the letter is in the guessWord 
             //if so, reveal it in the hiddenGuessword and change the color of the button 
             revealHiddenGuessWord(clickedLetter);
             e.currentTarget.classList.remove("btn-warning");
-            e.currentTarget.classList.add("btn-outline-success", "disabled");
-            
+            e.currentTarget.classList.add("btn-outline-success", "disabled");            
         }
         else{
             //if NOT, increament hangman status (hangman++) and change the color of the button
-            setHangman(hangman+1);
+            setHangman({...hangman, figure : hangman.figure + 1});
             e.currentTarget.classList.remove("btn-warning");
             e.currentTarget.classList.add("btn-outline-danger", "disabled");
         }
+
+       
      }
 
 
-      function revealHiddenGuessWord(char){
-        let str = '';
-        for(let i=0; i<guessWord.length; i++){
-            if(guessWord[i] === char){
-                str += char;
-            }
-            else{
-                str += hiddenGuessWord[i];
-            }
+    function revealHiddenGuessWord(char){
+    let str = '';
+    for(let i=0; i<guessWord.length; i++){
+        if(guessWord[i] === char){
+            str += char;
         }
-        setHiddenGuessWord(str);
-      }
+        else{
+            str += hiddenGuessWord[i];
+        }
+    }
+    setHiddenGuessWord(str);
+    }
 
-      function getRandomWordFromDictionary(filePath){
-        //https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file-in-the-browser
-        fetch(filePath)
-        .then((res) => res.text())
-        .then((text) => {
-
-            const dictionaryWords = text.split('\n')
-            const dictionaryMin = dictionaryWords.indexOf("START") + 1;
-            const dictionaryax = dictionaryWords.length;
-            const randomWord = Math.floor(Math.random() * dictionaryax) + dictionaryMin;
-            return randomWord;
-        })
-        .catch((e) => console.error(e))
-
-      }
+    function determineResults(){
+        if(guessWord === hiddenGuessWord && status !== 'launch'){
+            //User won
+            setHangman({...hangman, winner: true});
+            setStatus('results');            
+        }
+        else if(hangman.figure === 11){
+            //User lost
+            setHangman({...hangman, winner: false});
+            setStatus('results');
+        }
+    }
 
 
     return(
@@ -127,7 +119,7 @@ function Hangman(){
                 <div className="p-5 text-center bg-body-tertiary rounded-3">
                     <div className="row  row-cols-1 row-cols-md-2 g-4">
                         <div className="col">
-                            <img src={'hangmandrawings\\state'+hangman+'.GIF'} alt='hangman' className="bd-placeholder-img img-thumbnail" width="300" height="200" style={{marginLeft : '20px'}}></img>
+                            <img src={'hangmandrawings\\state'+hangman.figure+'.GIF'} alt='hangman' className="bd-placeholder-img img-thumbnail" width="300" height="200" style={{marginLeft : '20px'}}></img>
                         </div>
                         <div className="col" style={{width: '450px', marginTop: '30px'}}>
                             <Word hiddenGuessWord={hiddenGuessWord}/>
@@ -139,6 +131,8 @@ function Hangman(){
                     </div>
                 </div>
             </div>
+            <ResultsModal winner={hangman.winner}/>
+
         </>
 
     );
