@@ -3,7 +3,6 @@ import Letter from './Letter';
 import Header from './Header';
 import Word from './Word';
 import ResultsModal from './ResultsModal';
-import { Modal, Button } from "react-bootstrap";
 
 function Hangman(){
   const [status, setStatus] = useState('launch'); //launch, setMusk, playing, results
@@ -15,12 +14,12 @@ function Hangman(){
   const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
     //The user should be clearly informed if they have “won” or “lost” the game.
-    if(status !== 'results') determineResults(); 
+    if(status !== 'results' && status !== 'launch') determineResults(); 
 
   if(status === 'launch') {
         //Get words from dictionary.txt
         //https://stackoverflow.com/questions/14446447/how-to-read-a-local-text-file-in-the-browser
-        fetch("dictionary.txt")
+        fetch('dictionary.txt')
         .then((res) => res.text())
         .then((text) => {
 
@@ -95,7 +94,7 @@ function Hangman(){
     }
 
     function determineResults(){
-        if(guessWord === hiddenGuessWord && status !== 'launch'){
+        if(guessWord === hiddenGuessWord){
             //User won
             setHangman({...hangman, winner: true});
             setStatus('results');            
@@ -119,7 +118,7 @@ function Hangman(){
                 <div className="p-5 text-center bg-body-tertiary rounded-3">
                     <div className="row  row-cols-1 row-cols-md-2 g-4">
                         <div className="col">
-                            <img src={'hangmandrawings\\state'+hangman.figure+'.GIF'} alt='hangman' className="bd-placeholder-img img-thumbnail" width="300" height="200" style={{marginLeft : '20px'}}></img>
+                            <img src={'hangmandrawings/state'+hangman.figure+'.GIF'} alt='hangman' className="bd-placeholder-img img-thumbnail" width="300" height="200" style={{marginLeft : '20px'}}></img>
                         </div>
                         <div className="col" style={{width: '450px', marginTop: '30px'}}>
                             <Word hiddenGuessWord={hiddenGuessWord}/>
@@ -131,7 +130,7 @@ function Hangman(){
                     </div>
                 </div>
             </div>
-            <ResultsModal winner={hangman.winner}/>
+            <ResultsModal winner={hangman.winner} guessWord={guessWord}/>
 
         </>
 
